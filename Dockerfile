@@ -1,6 +1,6 @@
 FROM php:8.4-fpm
 
-# Instala dependências do sistema e ferramentas necessárias
+# Instala dependências do sistema
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -11,19 +11,23 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev
 
-# Limpa o cache do gerenciador de pacotes para reduzir o tamanho da imagem
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instala extensões do PHP essenciais para o Laravel e sistemas financeiros (bcmath)
+# Instala extensões PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Copia o Composer oficial diretamente da imagem do Docker Hub
+# Copia o Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Define o diretório de trabalho dentro do container
+# Define o diretório de trabalho
 WORKDIR /var/www
 
-# Expõe a porta do PHP-FPM
+# Copia o script de inicialização para dentro do container
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 9000
 
+# Define o script como o ponto de entrada oficial
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
