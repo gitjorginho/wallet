@@ -7,9 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Wallet;
 use App\Services\TransferService;
+use App\Http\Requests\Wallet\TransferRequest;
+use App\Http\Requests\Wallet\DepositRequest;
+use App\Http\Requests\Wallet\WithdrawRequest;
+
 class WalletController extends Controller
 {
   
+  /**
+   * Exibe o dashboard do usuário com informações da carteira e transações.
+   */
   public function index()
   {
       $user = Auth::user();
@@ -34,7 +41,9 @@ class WalletController extends Controller
       ]);
   }
 
-
+  /**
+   * Exibe o formulário de transferência para o usuário.
+   */
   public function transferForm(){
     
     $user = Auth::user();
@@ -55,66 +64,50 @@ class WalletController extends Controller
    * @return \Illuminate\Http\RedirectResponse Redireciona de volta para o dashboard com uma mensagem de sucesso ou erro.
    * @throws \Exception Se ocorrer algum erro durante a transferência.
    */
-
-  public function transfer(Request $request)
+  public function transfer(TransferRequest $transferRequest)
   {
-    
-    // 1. Validação estrita dos dados vindos da tela do Blade
-    $validated = $request->validate([
-        'payee_wallet_id' => 'required|exists:wallets,id',
-        'amount' => 'required|numeric|min:0.01',
-    ], [
-        'payee_wallet_id.required' => 'Você precisa selecionar um destinatário.',
-        'payee_wallet_id.exists' => 'O destinatário selecionado é inválido.',
-        'amount.required' => 'Informe o valor da transferência.',
-        'amount.numeric' => 'O valor deve ser um número válido.',
-        'amount.min' => 'O valor mínimo para transferência é R$ 0,01.',
-    ]);
-
+        
      $payerWallet = Auth::user()->wallet; 
      try{
       
         $transferService = new TransferService();
         $transaction = $transferService->execute(
           $payerWallet->id, 
-          $validated['payee_wallet_id'], 
-          $validated['amount']);
+          $transferRequest['payee_wallet_id'], 
+          $transferRequest['amount']);
         
-        return redirect()->route('dashboard')->with('success', 'Transferência realizada com sucesso!');
+        return redirect()->route('transfer.form')->with('success', 'Transferência realizada com sucesso!');
      }catch(\Exception $e){
-        return redirect()->route('dashboard')->with('error', 'Erro ao realizar a transferência: ' . $e->getMessage());
+        return redirect()->route('transfer.form')->with('error', 'Erro ao realizar a transferência: ' . $e->getMessage());
      }
 
   }
 
+  /**
+   * Exibe o formulário de depósito para o usuário.
+   */
   public function depositForm()
   {
       $wallet = Auth::user()->wallet;
       return view('wallet.deposit',compact('wallet'));
-
   }
 
   /**
    * Realiza o depósito em uma carteira.
+   * @param  DepositRequest $depositRequest A instância da requisição HTTP contendo os dados do depósito.
+   * @return \Illuminate\Http\RedirectResponse Redireciona de volta para o formulário
+   * @throws \Exception Se ocorrer algum erro durante o depósito.
    */
 
-  public function deposit(Request $request){
+  public function deposit(DepositRequest $depositRequest){
      
-    // Validação estrita dos dados vindos da tela do Blade
-    $validated = $request->validate([
-        'amount' => 'required|numeric|min:0.01',
-    ], [
-        
-        'amount.required' => 'Informe o valor do depósito.',
-        'amount.numeric' => 'O valor deve ser um número válido.',
-        'amount.min' => 'O valor mínimo para depósito é R$ 0,01.',
-    ]);
-
+    
     try{
+      $wallet = Auth::user()->wallet;
       $transferService = new TransferService();
       $transaction = $transferService->deposit(
-          Auth::user()->wallet->id, 
-          $validated['amount']
+          $wallet->id, 
+          $depositRequest['amount']
       );
 
       return redirect()->route('deposit.form')->with('success', 'Depósito realizado com sucesso!');
@@ -124,6 +117,9 @@ class WalletController extends Controller
 
   }
 
+  /**
+   * Exibe o formulário de saque para o usuário.
+   */
   public function withdrawForm()
   {
       $wallet = Auth::user()->wallet;
@@ -132,23 +128,18 @@ class WalletController extends Controller
 
   /**
    * Realiza o saque de uma carteira.
+   * @param  WithdrawRequest $withdrawRequest A instância da requisição HTTP contendo os dados do saque.
+   * @return \Illuminate\Http\RedirectResponse Redireciona de volta para o formulário
+   * @throws \Exception Se ocorrer algum erro durante o saque.
    */
-  public function withdraw(Request $request)
+  public function withdraw(WithdrawRequest $withdrawRequest)
   {
-      // Validação estrita dos dados vindos da tela do Blade
-      $validated = $request->validate([
-          'amount' => 'required|numeric|min:0.01',
-      ], [
-          'amount.required' => 'Informe o valor do saque.',
-          'amount.numeric' => 'O valor deve ser um número válido.',
-          'amount.min' => 'O valor mínimo para saque é R$ 0,01.',
-      ]);
-
       try{
+          $wallet = Auth::user()->wallet;
           $transferService = new TransferService();
           $transaction = $transferService->withdraw(
-              Auth::user()->wallet->id,
-              $validated['amount']
+              $wallet->id,
+              $withdrawRequest['amount']
           );
 
           return redirect()->route('withdraw.form')->with('success', 'Saque realizado com sucesso!');
