@@ -43,9 +43,7 @@
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Transferir</button>
                       
                     </form>
-                    <form action="{{ route('deposit.form') }}">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Depositar</button>
-                    </form>
+                    
 
                     @if(session('success'))
                         <div class="mb-4 p-4 bg-green-100 text-green-800 rounded-md">

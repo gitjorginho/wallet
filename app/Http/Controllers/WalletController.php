@@ -27,16 +27,10 @@ class WalletController extends Controller
             ->with(['payerWallet.user', 'payeeWallet.user']) 
             ->latest()
             ->get();
-
-      //lista todos os usuarios para preencher o select de transferencia
-      $otherWallets = Wallet::where('user_id', '!=', $user->id)
-      ->with('user')
-      ->get();
-
+     
       return view('wallet.index', [
           'wallet' => $user->wallet,
-          'transactions' => $transactions,
-          'otherWallets' => $otherWallets,
+          'transactions' => $transactions
       ]);
   }
 
