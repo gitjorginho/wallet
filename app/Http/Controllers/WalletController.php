@@ -122,9 +122,39 @@ class WalletController extends Controller
       return redirect()->route('deposit.form')->with('error', 'Erro ao realizar o depósito: ' . $e->getMessage());
     }
 
-
   }
 
+  public function withdrawForm()
+  {
+      $wallet = Auth::user()->wallet;
+      return view('wallet.withdraw',compact('wallet'));
+  }
 
+  /**
+   * Realiza o saque de uma carteira.
+   */
+  public function withdraw(Request $request)
+  {
+      // Validação estrita dos dados vindos da tela do Blade
+      $validated = $request->validate([
+          'amount' => 'required|numeric|min:0.01',
+      ], [
+          'amount.required' => 'Informe o valor do saque.',
+          'amount.numeric' => 'O valor deve ser um número válido.',
+          'amount.min' => 'O valor mínimo para saque é R$ 0,01.',
+      ]);
+
+      try{
+          $transferService = new TransferService();
+          $transaction = $transferService->withdraw(
+              Auth::user()->wallet->id,
+              $validated['amount']
+          );
+
+          return redirect()->route('withdraw.form')->with('success', 'Saque realizado com sucesso!');
+      }catch(\Exception $e){
+          return redirect()->route('withdraw.form')->with('error', 'Erro ao realizar o saque: ' . $e->getMessage());
+      }
+  }
 
 }

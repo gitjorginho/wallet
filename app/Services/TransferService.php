@@ -83,4 +83,46 @@ class TransferService{
         ]);
     });
   }
+
+  /**
+   * Realiza o Saque de uma carteira específica.
+   * 
+   * @param  int $payerWalletId O ID da carteira que realizará o saque.
+   * @param  float $amount O valor a ser sacado.
+   * @return Transaction A transação de saque criada.
+   * @throws Exception Se o valor do saque for inválido ou se o saldo for insuficiente.
+   */
+  public function withdraw(int $walletId, float $amount): Transaction
+  {
+    //Não permite saque com valor 0 ou menor
+    if($amount <= 0){
+      throw new Exception("O valor do saque deve ser maior que zero."); 
+    }
+
+    return DB::transaction(function () use ($walletId, $amount) {
+        
+        //garante que nenhuma atualizacao seja feita na carteira durante a transacao evitatando 
+        //problemas de concorrencias e inconsistencia do saldo
+        $wallet = Wallet::where('id', $walletId)->lockForUpdate()->firstOrFail();
+
+        // verifica se o saldo da carteira é suficiente 
+        if ($wallet->balance < $amount) {
+            throw new Exception("Saldo insuficiente para realizar o saque.");
+        }    
+
+        //deduz o valor da carteira
+        $wallet->decrement('balance', $amount);
+
+        //registra a trasacao de saque com sucesso
+        return Transaction::create([
+            'payer_wallet_id' => $walletId,
+            'payee_wallet_id' => null, // Nenhum recebedor para saque
+            'amount' => $amount,
+            'type' => 'withdraw',
+            'status' => 'completed',
+        ]);
+    });
+
+
+  }  
 }

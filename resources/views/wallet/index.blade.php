@@ -30,6 +30,11 @@
                                     Depositar
                                 </button>
                             </form>
+                            <form action="{{ route('withdraw.form') }}">
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                    Sacar
+                                </button>
+                            </form>
                         </div>
 
                         @if(session('success'))
@@ -82,6 +87,15 @@
                                     <span class="text-xs text-gray-500">{{ $transaction->created_at->format('d/m/Y \à\s H:i') }}</span>
                                 </div>
                                 <span class="font-semibold text-green-600">+ R$ {{ number_format($transaction->amount, 2, ',', '.') }}</span>
+                            </li>
+                            @endif
+                            @if($transaction->type === 'withdraw')
+                            <li class="py-3 flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium text-gray-800">Retirada</p>
+                                    <span class="text-xs text-gray-500">{{ $transaction->created_at->format('d/m/Y \à\s H:i') }}</span>
+                                </div>
+                                <span class="font-semibold text-red-600">- R$ {{ number_format($transaction->amount, 2, ',', '.') }}</span>
                             </li>
                             @endif
                            @endforeach 

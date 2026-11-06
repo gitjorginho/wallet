@@ -22,6 +22,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //realizar depósito em uma carteira
     Route::get('/deposit', [WalletController::class, 'depositForm'])->name('deposit.form');
     Route::post('/deposit', [WalletController::class, 'deposit'])->name('deposit');
+
+    //realizar saque de uma carteira
+    Route::get('/withdraw', [WalletController::class, 'withdrawForm'])->name('withdraw.form');
+    Route::post('/withdraw', [WalletController::class, 'withdraw'])->name('withdraw');
 });
 
 
