@@ -71,7 +71,7 @@ class WalletController extends Controller
      try{
       
         $transferService = new TransferService();
-        $transaction = $transferService->execute(
+        $transaction = $transferService->transfer(
           $payerWallet->id, 
           $transferRequest['payee_wallet_id'], 
           $transferRequest['amount']);
@@ -145,6 +145,18 @@ class WalletController extends Controller
           return redirect()->route('withdraw.form')->with('success', 'Saque realizado com sucesso!');
       }catch(\Exception $e){
           return redirect()->route('withdraw.form')->with('error', 'Erro ao realizar o saque: ' . $e->getMessage());
+      }
+  }
+
+  public function reverseTransaction(Transaction $transaction)
+  {
+      try {
+          $transferService = new TransferService();
+          $transferService->reverseTransaction($transaction);
+
+          return redirect()->route('dashboard')->with('success', 'Transação estornada com sucesso!');
+      } catch (\Exception $e) {
+          return redirect()->route('dashboard')->with('error', 'Erro ao estornar a transação: ' . $e->getMessage());
       }
   }
 

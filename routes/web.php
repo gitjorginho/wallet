@@ -26,6 +26,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //realizar saque de uma carteira
     Route::get('/withdraw', [WalletController::class, 'withdrawForm'])->name('withdraw.form');
     Route::post('/withdraw', [WalletController::class, 'withdraw'])->name('withdraw');
+
+    //estornar transacao
+    Route::post('/transactions/{transaction}/reverse', [WalletController::class, 'reverseTransaction'])->name('transactions.reverse');
+
 });
 
 

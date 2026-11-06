@@ -63,18 +63,43 @@
                               @if($transaction->payer_wallet_id === $wallet->id)
                               <li class="py-3 flex justify-between items-center">
                                   <div>
-                                      <p class="font-medium text-gray-800">Transferência enviada</p>
+                                      <p class="font-medium text-gray-800">Transferência enviada 
+                                        @if($transaction->status == 'reversed')
+                                        <spam style="color: red;">(Estonado)</spam>  
+                                        @endif
+                                      </p>
                                       <span class="text-xs text-gray-500">{{ $transaction->created_at->format('d/m/Y \à\s H:i') }}</span>
                                       <p class="text-xs text-gray-500">Para: {{ $transaction->payeeWallet->user->name }}</p>
+                                      @if($transaction->status !== 'reversed')
+                                      <form action="{{ route('transactions.reverse', $transaction->id) }}" method="POST" >
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition">
+                                          Estornar
+                                        </button>
+                                      </form>
+                                     @endif
+                                      
                                   </div>
                                   <span class="font-semibold text-red-600">- R$ {{ number_format($transaction->amount, 2, ',', '.') }}</span>
                               </li>
                               @elseif($transaction->payee_wallet_id === $wallet->id)
                               <li class="py-3 flex justify-between items-center">
                                   <div>
-                                      <p class="font-medium text-gray-800">Transferência recebida</p>
+                                      <p class="font-medium text-gray-800">Transferência recebida
+                                        @if($transaction->status == 'reversed')
+                                        <spam style="color: red;">(Estonado)</spam>  
+                                        @endif
+                                      </p>
                                       <span class="text-xs text-gray-500">{{ $transaction->created_at->format('d/m/Y \à\s H:i') }}</span>
                                       <p class="text-xs text-gray-500">De: {{ $transaction->payerWallet->user->name }}</p>
+                                      @if($transaction->status !== 'reversed')
+                                      <form action="{{ route('transactions.reverse', $transaction->id) }}" method="POST" >
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition">
+                                          Estornar
+                                        </button>
+                                      </form>
+                                     @endif
                                   </div>
                                   <span class="font-semibold text-green-600">+ R$ {{ number_format($transaction->amount, 2, ',', '.') }}</span>
                               </li>
@@ -83,8 +108,20 @@
                             @if($transaction->type === 'deposit')
                             <li class="py-3 flex justify-between items-center">
                                 <div>
-                                    <p class="font-medium text-gray-800">Depósito recebido</p>
+                                    <p class="font-medium text-gray-800">Depósito recebido
+                                      @if($transaction->status == 'reversed')
+                                        <spam style="color: red;">(Estonado)</spam>  
+                                        @endif
+                                    </p>
                                     <span class="text-xs text-gray-500">{{ $transaction->created_at->format('d/m/Y \à\s H:i') }}</span>
+                                    @if($transaction->status !== 'reversed')
+                                      <form action="{{ route('transactions.reverse', $transaction->id) }}" method="POST" >
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition">
+                                          Estornar
+                                        </button>
+                                      </form>
+                                     @endif
                                 </div>
                                 <span class="font-semibold text-green-600">+ R$ {{ number_format($transaction->amount, 2, ',', '.') }}</span>
                             </li>
@@ -92,8 +129,20 @@
                             @if($transaction->type === 'withdraw')
                             <li class="py-3 flex justify-between items-center">
                                 <div>
-                                    <p class="font-medium text-gray-800">Retirada</p>
+                                    <p class="font-medium text-gray-800">Retirada
+                                        @if($transaction->status == 'reversed')
+                                          <spam style="color: red;">(Estonado)</spam>  
+                                        @endif
+                                    </p>
                                     <span class="text-xs text-gray-500">{{ $transaction->created_at->format('d/m/Y \à\s H:i') }}</span>
+                                    @if($transaction->status !== 'reversed')
+                                      <form action="{{ route('transactions.reverse', $transaction->id) }}" method="POST" >
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition">
+                                          Estornar
+                                        </button>
+                                      </form>
+                                     @endif
                                 </div>
                                 <span class="font-semibold text-red-600">- R$ {{ number_format($transaction->amount, 2, ',', '.') }}</span>
                             </li>
