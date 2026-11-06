@@ -32,7 +32,7 @@ class User extends Authenticatable
     /**
      * Relacionamento: O usuário possui uma carteira.
      */
-    public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function wallet() 
     {
         return $this->hasOne(Wallet::class);
     }
