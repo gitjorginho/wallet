@@ -1,9 +1,12 @@
 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <h2 class="text-2xl font-bold mb-4">Extrato de Movimentação</h2>
-
                         <ul class="divide-y divide-gray-200 max-h-80 overflow-y-auto">
-                            <!-- Exemplo de estrutura (substitua pelo seu ) -->
+                           
+                          @if(count($transactions)==0)
+                            <div class="text-center text-sm text-gray-500 py-6">Nenhuma transação encontrada.</div>
+                          @endif
+                          <!-- Exemplo de estrutura (substitua pelo seu ) -->
                            @foreach($transactions as $transaction) 
                             @if($transaction->type === 'transfer') 
                               @if($transaction->payer_wallet_id === $wallet->id)

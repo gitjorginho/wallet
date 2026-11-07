@@ -36,7 +36,7 @@ class WalletController extends Controller
             ->get();
      
       return view('wallet.index', [
-          'wallet' => $user->wallet,
+          'wallet' => $wallet,
           'transactions' => $transactions
       ]);
   }
