@@ -11,7 +11,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h1 class="text-2xl font-bold mb-4">Saldo da Carteira</h1>
-                    <p class="text-lg mb-4">Saldo atual: R$ {{ number_format($wallet->balance, 2, ',', '.') }}</p>
+                    <p class="text-lg mb-4">Saldo atual: <b>R$ {{ number_format($wallet->balance, 2, ',', '.') }}</b></p>
 
                     <h2 class="text-xl font-semibold mb-2">Realizar Retirada</h2>
                     <form action="{{ route('withdraw') }}" method="POST" class="mb-4">

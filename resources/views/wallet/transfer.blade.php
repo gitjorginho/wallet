@@ -10,18 +10,18 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h1 class="text-2xl font-bold mb-4">Saldo da Carteira</h1>
-                    <p class="text-lg mb-4">Saldo atual: R$ {{ number_format($wallet->balance, 2, ',', '.') }}</p>
+                    <p class="text-lg mb-4">Saldo atual: <b>R$ {{ number_format($wallet->balance, 2, ',', '.') }}</b></p>
 
                     <h2 class="text-xl font-semibold mb-2">Transferir Fundos</h2>
                     <form action="{{ route('transfer') }}" method="POST" class="mb-4">
                         @csrf
                         <div class="mb-2">
                           
-                            <label for="payee_wallet_id" class="block text-sm font-medium text-gray-700">ID da Carteira do Destinatário:</label>
-                            <select name="payee_wallet_id" id="payee_wallet_id" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                
+                            <label for="payee_wallet_id" class="block text-sm font-medium text-gray-700">Carteira do Destinatário:</label>
+                            <select name="payee_wallet_id" id="payee_wallet_id" required class="mt-1 block max-w-md border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                               
                               @foreach($otherWallets as $recipientWallet)
-                                       <option value="{{ $recipientWallet->id }}">ID: {{ $recipientWallet->id }} - {{ $recipientWallet->user->name }}</option>
+                                       <option value="{{ $recipientWallet->id }}"> {{ $recipientWallet->user->name }}</option>
                                 @endforeach
                             </select>
                             @error('payee_wallet_id')
@@ -30,14 +30,14 @@
                         </div>
                         <div class="mb-2">
                             <label for="amount" class="block text-sm font-medium text-gray-700">Valor a Transferir:</label>
-                            {{-- <input type="number" name="amount" id="amount" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"> --}}
+                            
                             <input type="text" 
                                 inputmode="numeric" 
                                 name="amount" 
                                 id="amount" 
                                 placeholder="0,00" 
                                 required 
-                                class="currency-mask mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                class="currency-mask mt-1 block max-w-md border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             >
                             @error('amount')
                               <p class="text-sm text-red-600 mt-1">{{ $message }}</p>

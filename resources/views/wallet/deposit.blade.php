@@ -11,15 +11,14 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h1 class="text-2xl font-bold mb-4">Saldo da Carteira</h1>
-                    <p class="text-lg mb-4">Saldo atual: R$ {{ number_format($wallet->balance, 2, ',', '.') }}</p>
+                    <p class="text-lg mb-4">Saldo atual: <b>R$ {{ number_format($wallet->balance, 2, ',', '.') }}</b></p>
 
                     <h2 class="text-xl font-semibold mb-2">Depositar Fundos</h2>
                     <form action="{{ route('deposit') }}" method="POST" class="mb-4">
                         @csrf
                         <div class="mb-2">
                             <label for="amount" class="block text-sm font-medium text-gray-700">Valor a Depositar:</label>
-                            {{-- <input type="number" name="amount" id="amount" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"> --}}
-
+                                                     
                             <input type="text" 
                                 inputmode="numeric" 
                                 name="amount" 
