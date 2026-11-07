@@ -33,10 +33,13 @@ class TransferService{
     }    
 
      //deduz o valor da carteira pagadora
-     $payerWallet->decrement('balance', $amount);
+     $payerWallet->balance = bcsub($payerWallet->balance, $amount, 2);
+     $payerWallet->save();
 
     //adiciona o valor na carteira recebedora
-    $payeeWallet->increment('balance', $amount);
+    $payeeWallet->balance = bcadd($payeeWallet->balance, $amount, 2);
+    $payeeWallet->save();
+
      //registra a trasacao com sucesso
      return Transaction::create([
         'payer_wallet_id' => $payerWalletId,
@@ -73,6 +76,7 @@ class TransferService{
         //adiciona o valor na carteira
         $wallet->balance = bcadd($wallet->balance, $amount, 2);
         $wallet->save();
+
         //registra a trasacao de deposito com sucesso
         return Transaction::create([
             'payer_wallet_id' => null, // Nenhum pagador para depósito
@@ -141,8 +145,10 @@ class TransferService{
                   $payeeWallet = Wallet::where('id', $transaction->payee_wallet_id)->lockForUpdate()->firstOrFail();
 
                   // Reverte a transferência
-                  $payeeWallet->decrement('balance', $transaction->amount);
-                  $payerWallet->increment('balance', $transaction->amount);
+                  $payeeWallet->balance = bcsub($payeeWallet->balance, $transaction->amount, 2);
+                  $payeeWallet->save();
+                  $payerWallet->balance = bcadd($payerWallet->balance, $transaction->amount, 2);
+                  $payerWallet->save();
                   break;
 
               case 'deposit':
