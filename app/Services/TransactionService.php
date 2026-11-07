@@ -6,7 +6,7 @@ use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
-class TransferService{
+class TransactionService{
 
   public function transfer (int $payerWalletId, int $payeeWalletId, float $amount): Transaction
   {
@@ -155,14 +155,16 @@ class TransferService{
                   $wallet = Wallet::where('id', $transaction->payee_wallet_id)->lockForUpdate()->firstOrFail();
 
                   // Reverte o depósito
-                  $wallet->decrement('balance', $transaction->amount);
+                  $wallet->balance = bcsub($wallet->balance, $transaction->amount, 2);
+                  $wallet->save();
                   break;
 
               case 'withdraw':
                   $wallet = Wallet::where('id', $transaction->payer_wallet_id)->lockForUpdate()->firstOrFail();
 
                   // Reverte o saque
-                  $wallet->increment('balance', $transaction->amount);
+                  $wallet->balance = bcadd($wallet->balance, $transaction->amount, 2);
+                  $wallet->save();
                   break;
 
               default:

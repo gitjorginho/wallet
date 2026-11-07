@@ -6,7 +6,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Wallet;
-use App\Services\TransferService;
+use App\Services\TransactionService;
 use App\Http\Requests\Wallet\TransferRequest;
 use App\Http\Requests\Wallet\DepositRequest;
 use App\Http\Requests\Wallet\WithdrawRequest;
@@ -69,8 +69,8 @@ class WalletController extends Controller
         
      $payerWallet = Auth::user()->wallet; 
      try{
-        $transferService = new TransferService();
-        $transaction = $transferService->transfer(
+        $transactionService = new TransactionService();
+        $transaction = $transactionService->transfer(
           $payerWallet->id, 
           $transferRequest['payee_wallet_id'], 
           $transferRequest['amount']);
@@ -103,8 +103,8 @@ class WalletController extends Controller
     
     try{
       $wallet = Auth::user()->wallet;
-      $transferService = new TransferService();
-      $transaction = $transferService->deposit(
+      $transactionService = new TransactionService();
+      $transaction = $transactionService->deposit(
           $wallet->id, 
           $depositRequest['amount']
       );
@@ -135,8 +135,8 @@ class WalletController extends Controller
   {
       try{
           $wallet = Auth::user()->wallet;
-          $transferService = new TransferService();
-          $transaction = $transferService->withdraw(
+          $transactionService = new TransactionService();
+          $transaction = $transactionService->withdraw(
               $wallet->id,
               $withdrawRequest['amount']
           );
@@ -150,8 +150,8 @@ class WalletController extends Controller
   public function reverseTransaction(Transaction $transaction)
   {
       try {
-          $transferService = new TransferService();
-          $transferService->reverseTransaction($transaction);
+          $transactionService = new TransactionService();
+          $transactionService->reverseTransaction($transaction);
 
           return redirect()->route('dashboard')->with('success', 'Transação estornada com sucesso!');
       } catch (\Exception $e) {
