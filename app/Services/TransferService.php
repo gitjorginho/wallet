@@ -71,14 +71,14 @@ class TransferService{
         $wallet = Wallet::where('id', $walletId)->lockForUpdate()->firstOrFail();
 
         //adiciona o valor na carteira
-        $wallet->increment('balance', $amount);
-
+        $wallet->balance = bcadd($wallet->balance, $amount, 2);
+        $wallet->save();
         //registra a trasacao de deposito com sucesso
         return Transaction::create([
             'payer_wallet_id' => null, // Nenhum pagador para depósito
             'payee_wallet_id' => $walletId,
             'amount' => $amount,
-            'type' => 'deposit',
+             'type' => 'deposit',
             'status' => 'completed',
         ]);
     });
@@ -111,7 +111,8 @@ class TransferService{
         }    
 
         //deduz o valor da carteira
-        $wallet->decrement('balance', $amount);
+        $wallet->balance = bcsub($wallet->balance, $amount, 2);
+        $wallet->save();
 
         //registra a trasacao de saque com sucesso
         return Transaction::create([
@@ -133,17 +134,11 @@ class TransferService{
           if ($transaction->status === 'reversed') {
               throw new Exception("Esta transação já foi estornada.");
           }
-
           // Reverte a transação dependendo do tipo
           switch ($transaction->type) {
               case 'transfer':
                   $payerWallet = Wallet::where('id', $transaction->payer_wallet_id)->lockForUpdate()->firstOrFail();
                   $payeeWallet = Wallet::where('id', $transaction->payee_wallet_id)->lockForUpdate()->firstOrFail();
-
-                  // Verifica se o saldo da carteira recebedora é suficiente para reverter
-                  if ($payeeWallet->balance < $transaction->amount) {
-                      throw new Exception("Saldo insuficiente na carteira do destinatário para estornar a transferência.");
-                  }
 
                   // Reverte a transferência
                   $payeeWallet->decrement('balance', $transaction->amount);
@@ -152,11 +147,6 @@ class TransferService{
 
               case 'deposit':
                   $wallet = Wallet::where('id', $transaction->payee_wallet_id)->lockForUpdate()->firstOrFail();
-
-                  // Verifica se o saldo da carteira é suficiente para reverter
-                  if ($wallet->balance < $transaction->amount) {
-                      throw new Exception("Saldo insuficiente na carteira para estornar o depósito.");
-                  }
 
                   // Reverte o depósito
                   $wallet->decrement('balance', $transaction->amount);
