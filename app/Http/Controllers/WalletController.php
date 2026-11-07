@@ -69,14 +69,13 @@ class WalletController extends Controller
         
      $payerWallet = Auth::user()->wallet; 
      try{
-      
         $transferService = new TransferService();
         $transaction = $transferService->transfer(
           $payerWallet->id, 
           $transferRequest['payee_wallet_id'], 
           $transferRequest['amount']);
         
-        return redirect()->route('transfer.form')->with('success', 'Transferência realizada com sucesso!');
+        return redirect()->route('dashboard')->with('success', 'Transferência realizada com sucesso!');
      }catch(\Exception $e){
         return redirect()->route('transfer.form')->with('error', 'Erro ao realizar a transferência: ' . $e->getMessage());
      }
@@ -110,7 +109,7 @@ class WalletController extends Controller
           $depositRequest['amount']
       );
 
-      return redirect()->route('deposit.form')->with('success', 'Depósito realizado com sucesso!');
+      return redirect()->route('dashboard')->with('success', 'Depósito realizado com sucesso!');
     }catch(\Exception $e){
       return redirect()->route('deposit.form')->with('error', 'Erro ao realizar o depósito: ' . $e->getMessage());
     }
@@ -142,7 +141,7 @@ class WalletController extends Controller
               $withdrawRequest['amount']
           );
 
-          return redirect()->route('withdraw.form')->with('success', 'Saque realizado com sucesso!');
+          return redirect()->route('dashboard')->with('success', 'Saque realizado com sucesso!');
       }catch(\Exception $e){
           return redirect()->route('withdraw.form')->with('error', 'Erro ao realizar o saque: ' . $e->getMessage());
       }
