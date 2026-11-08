@@ -56,7 +56,7 @@ class TransactionService{
         'status' => 'completed',
      ]);  
 
-
+    //resgistra o log da operação
     Log::channel('transactions')->info('Transferência financeira concluída', [
       'transaction_id' => $transaction->id,
       'payer_wallet_id' => $payerWallet->id,
@@ -102,6 +102,7 @@ class TransactionService{
             'status' => 'completed',
         ]);
 
+        //resgistra o log da operação
         Log::channel('transactions')->info('Depósito realizado com sucesso', [
          'transaction_id' => $transaction->id,
          'payee_wallet_id' => $wallet->id,
