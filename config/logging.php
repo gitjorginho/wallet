@@ -51,6 +51,12 @@ return [
     */
 
     'channels' => [
+        'transactions' => [
+          'driver' => 'single',
+          'path' => storage_path('logs/transactions.log'),
+          'level' => 'info',
+          'replace_placeholders' => true,
+        ],
 
         'stack' => [
             'driver' => 'stack',

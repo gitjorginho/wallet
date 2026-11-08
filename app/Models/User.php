@@ -29,4 +29,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    /**
+     * Relacionamento: O usuário possui uma carteira.
+     */
+    public function wallet() 
+    {
+        return $this->hasOne(Wallet::class);
+    }
+    
 }

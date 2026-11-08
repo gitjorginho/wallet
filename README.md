@@ -1,58 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 💰 Carteira Digital - Desafio Técnico Full Stack
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este projeto consiste em uma plataforma de **Carteira Digital** de alta confiabilidade desenvolvida para gerenciar saldos, depósitos, saques, transferências entre usuários e estornos de transações. 
 
-## About Laravel
+A arquitetura foi projetada seguindo os padrões recomendados para sistemas financeiros, priorizando a consistência dos dados, precisão matemática e segurança contra condições de corrida.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Decisões Técnicas & Arquitetura
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. Garantia ACID e Locks contra Concorrência (`lockForUpdate`)
+Para evitar problemas críticos como o *Double Spending* (gasto duplo), todas as operações que envolvem alteração de saldo utilizam transações de banco de dados (`DB::transaction`). Dentro do Service, os registros das carteiras envolvidas são bloqueados utilizando o mecanismo de **Pessimistic Locking** (`lockForUpdate()`) do banco de dados:
+* Isso impede que duas transferências simultâneas leiam ou alterem o mesmo saldo ao mesmo tempo, enfileirando as requisições de forma segura e garantindo consistência absoluta.
 
-## Learning Laravel
+### 2. Precisão Decimal Financeira (`BCMath`)
+Computadores sofrem nativamente com erros de arredondamento ao realizar cálculos matemáticos com números de ponto flutuante (`float`). Em bilhões de transações, pequenas dízimas como `.77000000000001` podem distorcer saldos.
+* Toda a matemática de crédito e débito deste projeto foi blindada utilizando a extensão **BCMath** do PHP, que realiza cálculos de precisão arbitrária baseados em strings, garantindo exatidão de duas casas decimais em todas as somas (`bcadd`) e subtrações (`bcsub`).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 3. Observabilidade e Auditoria Isolada (`transactions.log`)
+Operações financeiras exigem rastreabilidade estrita. O sistema possui uma arquitetura de logs estruturados em formato JSON, gravando dados essenciais de contexto (`transaction_id`, `wallet_id`, `amount`, `new_balance`).
+* **Canal Dedicado:** Foi criado um canal de log customizado chamado `transactions`. Ele isola todas as movimentações de sucesso diretamente no arquivo `storage/logs/transactions.log`, impedindo que os dados de auditoria financeira se misturem com logs comuns de erro ou depuração do sistema.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 4. Camada de Serviço Isolada (`TransactionService`)
+Toda a lógica e regras de validação financeira (bloqueio de valores negativos, validação de saldo insuficiente e impedimento de auto-transferência) foram totalmente encapsuladas na camada de serviço, mantendo os Controllers limpos e focados apenas no transporte das requisições.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 🛠️ Stack Tecnológica
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+* **Backend:** PHP 8.3 / Laravel 11
+* **Frontend:** Blade, Tailwind CSS e Alpine.js (para gerenciamento de estado e alertas fluidos)
+* **Autenticação:** Laravel Breeze (Estilização nativa e limpa)
+* **Ambiente:** Docker & Docker Compose (Containerização completa da aplicação)
+* **Banco de Dados:** MySQL 8.0 (Produção/Local) e SQLite (Suíte de Testes Automatizados)
 
+---
+
+## 📦 Como Executar o Projeto com Docker
+
+Certifique-se de ter o **Docker** e o **Docker Compose** instalados em sua máquina.
+
+### 1. Clonar o repositório e acessar a pasta
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <url-do-seu-repositorio>
+cd wallet
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Preparar os arquivos de ambiente e subir os containers
+```bash
+cp .env.example .env
+docker compose up -d
+```
 
-## Contributing
+### 3. Instalar dependências e gerar chaves
+```bash
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Executar as Migrations e compilar os Assets frontend
+```bash
+docker compose exec app php artisan migrate --seed
+docker compose exec app npm install
+docker compose exec app npm run build
+```
 
-## Code of Conduct
+A aplicação estará disponível em seu navegador através do endereço: **`http://localhost:8080`**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🧪 Suíte de Testes Automatizados
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+O projeto conta com uma cobertura rigorosa de testes, dividida entre testes de integração de ponta a ponta e testes unitários isolados da regra de negócio. Para garantir velocidade máxima e isolamento total, os testes rodam utilizando um banco de dados SQLite em memória (`:memory:`).
 
-## License
+### Cenários Cobertos
+* **Segurança de Rotas:** Bloqueio de acessos ao dashboard para usuários não autenticados.
+* **Formulários e Visual:** Verificação de renderização (HTTP 200) das telas e componentes.
+* **Fluxo de Depósito:** Acréscimo exato e compensação/abatimento automático de saldos negativos gerados por estornos.
+* **Fluxo de Saque:** Dedução de saldo e validação estrita de saldo insuficiente.
+* **Fluxo de Transferência:** Débito no pagador, crédito no recebedor e registro automático no histórico de transações.
+* **Fluxo de Estorno:** Reversão segura de saldo, atualização de status do histórico para `reversed` e bloqueio de estornos duplicados da mesma transação.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Como executar os testes no terminal:
+
+```bash
+# Executar toda a suíte de testes (Unitários + Integração)
+docker compose exec app php artisan test
+
+# Executar exclusivamente os testes de integração (Feature)
+docker compose exec app php artisan test --testsuite=Feature
+
+# Executar exclusivamente os testes de regra de negócio (Unit)
+docker compose exec app php artisan test --testsuite=Unit
+```
