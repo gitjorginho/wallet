@@ -5,8 +5,15 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class TransactionService{
+  /**
+   * Realiza operação de tranferência  
+   * @param int $payerWalletId id da carteira pagadora
+   * @param int $payeeWalletId id da carteira recebedora
+   * @param float $amount valor a ser transferido
+   */
 
   public function transfer (int $payerWalletId, int $payeeWalletId, float $amount): Transaction
   {
@@ -41,7 +48,7 @@ class TransactionService{
     $payeeWallet->save();
 
      //registra a trasacao com sucesso
-     return Transaction::create([
+     $transaction =  Transaction::create([
         'payer_wallet_id' => $payerWalletId,
         'payee_wallet_id' => $payeeWalletId,
         'amount' => $amount,
@@ -49,6 +56,15 @@ class TransactionService{
         'status' => 'completed',
      ]);  
 
+
+    Log::channel('transactions')->info('Transferência financeira concluída', [
+      'transaction_id' => $transaction->id,
+      'payer_wallet_id' => $payerWallet->id,
+      'payee_wallet_id' => $payeeWallet->id,
+      'amount' => $amount,
+    ]);
+
+    return  $transaction;
     });
   }
 
@@ -78,13 +94,22 @@ class TransactionService{
         $wallet->save();
 
         //registra a trasacao de deposito com sucesso
-        return Transaction::create([
+        $transaction =  Transaction::create([
             'payer_wallet_id' => null, // Nenhum pagador para depósito
             'payee_wallet_id' => $walletId,
             'amount' => $amount,
              'type' => 'deposit',
             'status' => 'completed',
         ]);
+
+        Log::channel('transactions')->info('Depósito realizado com sucesso', [
+         'transaction_id' => $transaction->id,
+         'payee_wallet_id' => $wallet->id,
+         'amount' => $amount,
+         'new_balance' => $wallet->balance,
+        ]);
+        
+        return $transaction;
     });
   }
 
@@ -119,18 +144,34 @@ class TransactionService{
         $wallet->save();
 
         //registra a trasacao de saque com sucesso
-        return Transaction::create([
-            'payer_wallet_id' => $walletId,
+        $transaction = Transaction::create([
+            'payer_wallet_id' => $wallet->id,
             'payee_wallet_id' => null, // Nenhum recebedor para saque
             'amount' => $amount,
             'type' => 'withdraw',
             'status' => 'completed',
         ]);
+        
+        //log da operacao
+        Log::channel('transactions')->info('Saque realizado com sucesso', [
+          'transaction_id' => $transaction->id,
+          'wallet_id' => $wallet->id,
+          'amount' => $transaction->amount,
+          'new_balance' => $wallet->balance
+        ]);
+
+        return $transaction;  
     });
 
 
   }  
 
+  /**
+   * Methodo responsável por fazer o estono da trasação finaceira
+   * @param Transaction
+   * @return void
+   * * @throws Exception caso o estorno já tenha sido realizado
+   */
   public function reverseTransaction(Transaction $transaction): void
   {
       DB::transaction(function () use ($transaction) {
@@ -174,6 +215,13 @@ class TransactionService{
           // Marca a transação como estornada
           $transaction->status = 'reversed';
           $transaction->save();
+
+          //log da operacao
+        Log::channel('transactions')->warning('Transação financeira estornada', [
+          'transaction_id' => $transaction->id,
+          'reversed_by_wallet_id' => $wallet->id,
+          'amount' => $transaction->amount,
+        ]);
       });
   }
 }
