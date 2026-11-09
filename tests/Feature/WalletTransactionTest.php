@@ -123,7 +123,7 @@ class WalletTransactionTest extends TestCase
             'amount' => 50.00,
         ]);
 
-        $response->assertRedirect(route('withdraw.form'));
+        $response->assertRedirect(route('dashboard'));
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('wallets', [
@@ -149,7 +149,7 @@ class WalletTransactionTest extends TestCase
             'amount' => 150.00,
         ]);
         //valida se o redirecionamento e a mensagem de sucesso foram retornados
-        $response->assertRedirect(route('deposit.form'));
+        $response->assertRedirect(route('dashboard'));
         $response->assertSessionHas('success');
 
         // Verifica se -48.23 + 150.00 resultou em 101.77
@@ -179,7 +179,7 @@ class WalletTransactionTest extends TestCase
         ]);
 
         //verifica se o redirecionamento de sucesso foi realizado  
-        $response->assertRedirect(route('transfer.form'));
+        $response->assertRedirect(route('dashboard'));
         $response->assertSessionHas('success');
 
         // Valida os novos saldos no banco

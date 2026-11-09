@@ -73,7 +73,7 @@ class WalletController extends Controller
      $payerWallet = Auth::user()->wallet; 
      try{
         $transactionService = new TransferService();
-        $transaction = $transactionService->execute(
+        $transactionService->execute(
           $payerWallet->id, 
           $transferRequest['payee_wallet_id'], 
           $transferRequest['amount']);

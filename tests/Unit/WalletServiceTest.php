@@ -3,7 +3,9 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
-use App\Services\TransactionService;
+use App\Services\TransferService;
+use App\Services\DepositService;
+use App\Services\WithdrawService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Wallet;
@@ -14,16 +16,17 @@ class WalletServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-
-    private TransactionService $transactionService;
-
+    private TransferService $transferService;
+    private DepositService $depositService;
+    private WithdrawService $withdrawService;
+    
     protected function setUp(): void
     {
         parent::setUp();
-        $this->transactionService = new TransactionService();
+        $this->transferService = new TransferService();
+        $this->depositService = new DepositService();
+        $this->withdrawService = new WithdrawService();
     }
-
-
 
     /**
      * Teste de deposito caso o saldo da conta esteja menor q zero
@@ -35,7 +38,7 @@ class WalletServiceTest extends TestCase
         $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => -30.50]);
 
         //realiza um deposito 
-        $transaction = $this->transactionService->deposit($wallet->id, 100.75);
+        $transaction = $this->depositService->execute($wallet->id, 100.75);
 
         //faz assecoes com os valores atualizados
         $this->assertEquals('70.25', $wallet->fresh()->balance);
@@ -58,7 +61,33 @@ class WalletServiceTest extends TestCase
         $this->expectExceptionMessage('O valor do depósito deve ser maior que zero.');
 
         //faz um deposito com valor menor q zero para gerar o exception  
-        $this->transactionService->deposit($wallet->id, -10.00);
+        $this->depositService->execute($wallet->id, -10.00);
+    }
+
+     /**
+     * estorno de deposito
+     */
+    public function test_reverse_deposit(){
+
+      //cria um usuario com carteira 
+      $user = User::factory()->create();
+      $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 20.00]);
+
+      //registra uma trasação para fazer a reversão  
+      $transaction = Transaction::create([
+        'payer_wallet_id' => null,
+        'payee_wallet_id' => $wallet->id,
+        'amount' => 80.00,
+        'type' => 'deposit',
+        'status' => 'completed',
+      ]);
+      //realiza a operacao de estorno
+      $this->depositService->reverse($transaction);
+
+      $this->assertEquals('-60', $wallet->fresh()->balance);
+      $this->assertEquals('deposit', $transaction->fresh()->type);
+      $this->assertEquals('reversed', $transaction->fresh()->status);
+
     }
 
     /**
@@ -71,12 +100,37 @@ class WalletServiceTest extends TestCase
         $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 150.00]);
 
         //realiza uma operacao de saque 
-        $transaction = $this->transactionService->withdraw($wallet->id, 45.25);
+        $transaction = $this->withdrawService->execute($wallet->id, 45.25);
 
         //faz as assercoes do balanço e transacao
         $this->assertEquals('104.75', $wallet->fresh()->balance);
         $this->assertEquals('withdraw', $transaction->type);
         $this->assertEquals('completed', $transaction->status);
+    }
+
+    /**
+     * estorno de saque
+     */
+    public function test_reverse_withdraw(){
+
+      //cria um usuario com carteira 
+      $user = User::factory()->create();
+      $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 20.00]);
+
+      //registra uma trasação para fazer a reversão  
+      $transaction = Transaction::create([
+        'payer_wallet_id' => $wallet->id,
+        'payee_wallet_id' => null,
+        'amount' => 80.00,
+        'type' => 'withdraw',
+        'status' => 'completed',
+      ]);
+     
+      $this->withdrawService->reverse($transaction); 
+      $this->assertEquals('100.00', $wallet->fresh()->balance);
+      $this->assertEquals('withdraw', $transaction->fresh()->type);
+      $this->assertEquals('reversed', $transaction->fresh()->status);
+
     }
 
     /**
@@ -95,7 +149,7 @@ class WalletServiceTest extends TestCase
 
         //realiza um saque com valor superior ao saldo 
         //gerando um exception    
-        $this->transactionService->withdraw($wallet->id, 50.00);
+        $this->withdrawService->execute($wallet->id, 50.00);
     }
 
     /**
@@ -112,7 +166,7 @@ class WalletServiceTest extends TestCase
         $payeeWallet = Wallet::factory()->create(['user_id' => $payee->id, 'balance' => 10.50]);
 
         //realiza uma operação de transferencia 
-        $transaction = $this->transactionService->transfer($payerWallet->id, $payeeWallet->id, 75.33);
+        $transaction = $this->transferService->execute($payerWallet->id, $payeeWallet->id, 75.33);
 
         //faz assercões do saldo da conta das duas carteira   
         $this->assertEquals('124.67', $payer->wallet->fresh()->balance);
@@ -135,7 +189,7 @@ class WalletServiceTest extends TestCase
         $this->expectExceptionMessage('Não é possível fazer traferência para a mesma carteira');
         
         //realiza uma transferencia para a mesma carteira
-        $this->transactionService->transfer($wallet->id, $wallet->id, 50.00);
+        $this->transferService->execute($wallet->id, $wallet->id, 50.00);
     }
 
     /**
@@ -161,7 +215,7 @@ class WalletServiceTest extends TestCase
         ]);
         
         //realiza um estorno 
-        $this->transactionService->reverseTransaction($transaction);
+        $this->transferService->reverse($transaction);
 
         //faz assercoes da carteirra pagadora e recebedora 
         $this->assertEquals('130.00', $payerWallet->fresh()->balance);
@@ -196,7 +250,7 @@ class WalletServiceTest extends TestCase
         $this->expectExceptionMessage('Esta transação já foi estornada.');
         
         //realiza um a trasacao de estorno para gerar o exception 
-        $this->transactionService->reverseTransaction($transaction);
+        $this->transferService->reverse($transaction);
     }
 
 
