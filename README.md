@@ -44,7 +44,7 @@ https://github.com/gitjorginho/wallet
 
 ### 2. Preparar os arquivos de ambiente e subir os containers
 ```bash
-docker compose up -d
+docker compose up
 ```
 
 A aplicação estará disponível em seu navegador através do endereço: **`http://localhost:8080`**
