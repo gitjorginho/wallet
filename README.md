@@ -16,7 +16,8 @@ Para evitar que variáveis do tipo float tenha dizimas como 1,770000000001, foi 
 
 ### 3. Observabilidade e Auditoria Isolada (`transactions.log`)
 Operações financeiras exigem rastreabilidade estrita. O sistema possui uma arquitetura de logs estruturados em formato JSON, gravando dados essenciais de contexto (`transaction_id`, `wallet_id`, `amount`, `new_balance`).
-foi criado um sistema de log q fica salvo em `storage/logs/transactions.log`, impedindo que os dados de auditoria financeira se misturem com logs comuns de erro ou depuração do sistema.
+foi criado um sistema de log q fica salvo em `storage/logs/transactions.log`, impedindo que os dados de auditoria financeira se misturem com logs comuns de erro ou depuração do sistema. Esses logs podem ser usados com ferramentas de observabilidade como: Prometheus,Grafana ou Elasticsearch.
+Para observabilidade de algumas caracteristicas do sistema em desenvolvimento pode acessar tambem **`http://localhost:8080/telescope`**
 
 ### 4. Camada de Serviço Isolada (`TransferService,DepositService,WithdrawService`)
 Toda a lógica e regras de validação financeira (bloqueio de valores negativos, validação de saldo insuficiente e impedimento de auto-transferência) foram totalmente encapsuladas na camada de serviço, mantendo os Controllers limpos e focados apenas no transporte das requisições.
