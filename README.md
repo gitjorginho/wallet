@@ -46,8 +46,7 @@ https://github.com/gitjorginho/wallet
 ```bash
 docker compose up
 ```
-
-A aplicação estará disponível em seu navegador através do endereço: **`http://localhost:8080`**
+Aguarde alguns minutos e a aplicação estará disponível em seu navegador através do endereço: **`http://localhost:8080`**
 
 ---
 
