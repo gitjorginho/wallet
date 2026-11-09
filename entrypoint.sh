@@ -37,15 +37,12 @@ php artisan config:clear
 php artisan route:clear
 php artisan cache:clear
 
-# Re-aplica permissões nos arquivos recém-criados pelo build e migrações
-# chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-# chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+# 9. Garante que as pastas de cache e storage existam e pertençam ao servidor web
 echo "[9] -  Criando permissoes nas pastas de cache e storage"
-# 1. Garante que as pastas de cache e storage existam e pertençam ao servidor web
 mkdir -p /var/www/storage /var/www/bootstrap/cache
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
 
 
 echo -e "✅ Sistema pronto! Acesse http://localhost:8080"

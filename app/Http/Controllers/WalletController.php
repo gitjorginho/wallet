@@ -6,10 +6,13 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Wallet;
-use App\Services\TransactionService;
+use App\Services\TransferService;
+use App\Services\DepositService;
+use App\Services\WithdrawService;
 use App\Http\Requests\Wallet\TransferRequest;
 use App\Http\Requests\Wallet\DepositRequest;
 use App\Http\Requests\Wallet\WithdrawRequest;
+
 
 class WalletController extends Controller
 {
@@ -69,8 +72,8 @@ class WalletController extends Controller
         
      $payerWallet = Auth::user()->wallet; 
      try{
-        $transactionService = new TransactionService();
-        $transaction = $transactionService->transfer(
+        $transactionService = new TransferService();
+        $transaction = $transactionService->execute(
           $payerWallet->id, 
           $transferRequest['payee_wallet_id'], 
           $transferRequest['amount']);
@@ -103,8 +106,8 @@ class WalletController extends Controller
     
     try{
       $wallet = Auth::user()->wallet;
-      $transactionService = new TransactionService();
-      $transaction = $transactionService->deposit(
+      $depositService = new DepositService();
+      $depositService->execute(
           $wallet->id, 
           $depositRequest['amount']
       );
@@ -135,8 +138,8 @@ class WalletController extends Controller
   {
       try{
           $wallet = Auth::user()->wallet;
-          $transactionService = new TransactionService();
-          $transaction = $transactionService->withdraw(
+          $transactionService = new WithdrawService();
+          $transactionService->execute(
               $wallet->id,
               $withdrawRequest['amount']
           );
@@ -149,10 +152,26 @@ class WalletController extends Controller
 
   public function reverseTransaction(Transaction $transaction)
   {
-      try {
-          $transactionService = new TransactionService();
-          $transactionService->reverseTransaction($transaction);
+    try {
+          // Reverte a transação dependendo do tipo
+          switch ($transaction->type) {
+              case 'transfer':
+                  $transferService = new TransferService (); 
+                  $transferService->reverse($transaction);
+                  break;
 
+              case 'deposit':
+                  $depositService = new DepositService (); 
+                  $depositService->reverse($transaction);
+                  break;
+
+              case 'withdraw':
+                  $withdrawService = new WithdrawService (); 
+                  $withdrawService->reverse($transaction);
+                  break;
+              default:
+                  throw new \Exception("Tipo de transação desconhecido.");
+          }
           return redirect()->route('dashboard')->with('success', 'Transação estornada com sucesso!');
       } catch (\Exception $e) {
           return redirect()->route('dashboard')->with('error', 'Erro ao estornar a transação: ' . $e->getMessage());
