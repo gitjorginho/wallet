@@ -2,7 +2,7 @@
 
 Este projeto consiste em uma plataforma de **Carteira Digital** de alta confiabilidade desenvolvida para gerenciar saldos, depósitos, saques, transferências entre usuários e estornos de transações. 
 
-A arquitetura foi projetada seguindo os padrões recomendados para sistemas financeiros, priorizando a consistência dos dados, precisão matemática e segurança contra condições de cooncorrência.
+A arquitetura foi projetada seguindo os padrões recomendados para sistemas financeiros, priorizando a consistência dos dados, precisão matemática e segurança contra condições de concorrência.
 
 ---
 
@@ -11,11 +11,8 @@ A arquitetura foi projetada seguindo os padrões recomendados para sistemas fina
 ### 1. Garantia ACID e Locks contra Concorrência (`lockForUpdate`)
 Para evitar que duas transferências simultâneas leiam ou alterem o mesmo saldo ao mesmo tempo foi ultilizado o (`lockForUpdate()`). garantido consistencia absoluta dos saldos.  
 
-
 ### 2. Precisão Decimal Financeira (`BCMath`)
 Para evitar que variáveis do tipo float tenha dizimas como 1,770000000001, foi usado a funções nativas do php (bcsub,bcadd) para calculos monetarios. evitando que alguns centavos apareção de forma imprevisível. 
-
-
 
 ### 3. Observabilidade e Auditoria Isolada (`transactions.log`)
 Operações financeiras exigem rastreabilidade estrita. O sistema possui uma arquitetura de logs estruturados em formato JSON, gravando dados essenciais de contexto (`transaction_id`, `wallet_id`, `amount`, `new_balance`).
@@ -24,6 +21,7 @@ foi criado um sistema de log q fica salvo em `storage/logs/transactions.log`, im
 ### 4. Camada de Serviço Isolada (`TransferService,DepositService,WithdrawService`)
 Toda a lógica e regras de validação financeira (bloqueio de valores negativos, validação de saldo insuficiente e impedimento de auto-transferência) foram totalmente encapsuladas na camada de serviço, mantendo os Controllers limpos e focados apenas no transporte das requisições.
 Atendendo o principio de reponsabilidade unica.
+
 ---
 
 ##  Stack Tecnológica
