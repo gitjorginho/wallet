@@ -22,7 +22,7 @@ class WalletTransactionTest extends TestCase
      * Verifica se é possivel acessar o dashboard sem esta logado 
      */
     
-    public function test_guests_cannot_access_wallet_routes(): void
+    public function test_tenta_acessar_dashboard_sem_login()
     {
     // Tenta acessar o dashboard sem estar logado
     $response = $this->get(route('dashboard'));
@@ -35,7 +35,7 @@ class WalletTransactionTest extends TestCase
      * teste para verificar se o formulario de transferencia 
      * esta sendo exibido corretamente 
      */
-    public function test_show_form_transfer():void{
+    public function test_verifica_o_formulario_de_transferencia(){
 
         $user = User::factory()->create();
         $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 100.00]);
@@ -60,7 +60,7 @@ class WalletTransactionTest extends TestCase
      * Teste para verificar se o formulario de deposito é mostrado.  
      */
 
-    public function test_show_form_deposit():void{
+    public function test_verifica_o_formulario_de_deposito(){
 
         $user = User::factory()->create();
         $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 100.00]);
@@ -77,7 +77,7 @@ class WalletTransactionTest extends TestCase
     /**
      * Teste para verificar se o formulario de deposito é mostrado corretamente
      */
-    public function test_show_form_withdraw():void{
+    public function test_verifica_o_formulario_de_saque(){
 
         $user = User::factory()->create();
         $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 100.00]);
@@ -94,7 +94,7 @@ class WalletTransactionTest extends TestCase
     /**
      * Teste para verificar se a tela de dashboard é mostrado corretamente
      */
-    public function test_show_dashboard():void{
+    public function test_tela_dashboard(){
 
         $user = User::factory()->create();
         $wallet = Wallet::factory()->create(['user_id' => $user->id, 'balance' => 100.00]);
@@ -111,7 +111,7 @@ class WalletTransactionTest extends TestCase
     /** 
      * teste de saque de uma carteira para verificar se o valor é debitado corretamente
      */
-    public function test_user_can_withdraw_money(): void
+    public function test_verifica_se_o_usuario_pode_fazer_saque()
     {
         $user = User::factory()->create();
         $wallet = Wallet::factory()->create([
@@ -136,7 +136,7 @@ class WalletTransactionTest extends TestCase
     /**
      * Teste para verifica se o valor depositado é calculado corretamente se o saldo da conta for negativo
      */
-    public function test_user_can_deposit_money_and_offset_negative_balance(): void
+    public function test_verifica_se_o_valor_depositado_na_noconta_negativa_calcula_corretamente()
     {
         $user = User::factory()->create();
         // Simula uma conta que ficou negativa após um estorno
@@ -162,7 +162,7 @@ class WalletTransactionTest extends TestCase
     /**
      * Teste de transferencia de uma carteira para outra
      */
-    public function test_user_can_transfer_money_to_another_user(): void
+    public function test_verifica_se_um_usuario_consegue_fazer_transferencia()
     {
         //cria um usuario pagador e sua carteira com saldo inicial
         $payer = User::factory()->create();
@@ -199,7 +199,7 @@ class WalletTransactionTest extends TestCase
     /**
      * Teste de estono de uma transação de transferencia 
      */
-    public function test_user_can_reverse_a_completed_transfer(): void
+    public function test_verifica_se_usuario_consegue_fazer_estorno_de_transferencia()
     {
         $payer = User::factory()->create();
         $payerWallet = Wallet::factory()->create(['user_id' => $payer->id, 'balance' => 100.00]);
@@ -235,7 +235,7 @@ class WalletTransactionTest extends TestCase
     /**
      * teste de saldo insuficiente para transferencia
      */
-    public function test_insufficient_balance_for_transfer():void{
+    public function test_verifica_transferencia_com_saldo_negativo(){
         
         $payer = User::factory()->create();
         $payerWallet = Wallet::factory()->create(['user_id' => $payer->id, 'balance' => 100.00]);
@@ -273,7 +273,7 @@ class WalletTransactionTest extends TestCase
     /**
      * Teste de estorno de uma transação de transferência que já foi estornada
      */
-    public function test_duplicate_refund(): void
+    public function test_verifica_permite_estornar_um_restro_ja_estornado(): void
     {
         $payer = User::factory()->create();
         $payerWallet = Wallet::factory()->create(['user_id' => $payer->id, 'balance' => 100.00]);

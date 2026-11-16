@@ -31,7 +31,7 @@ class WalletServiceTest extends TestCase
     /**
      * Teste de deposito caso o saldo da conta esteja menor q zero
      */
-    public function test_deposit_increases_balance_and_offsets_negative_value()
+    public function test_deposito_caso_saldo_esteja_negativo()
     {
        //cria um usuario com carteira    
         $user = User::factory()->create();
@@ -50,7 +50,7 @@ class WalletServiceTest extends TestCase
     * Teste de deposito com valor invalido ou abaixo de 0,01
     * deve retorna um exception   
     */
-    public function test_deposit_throws_exception_for_invalid_amount()
+    public function test_deposito_com_valor_invalido()
     {
         //cria um usuario com carteira 
         $user = User::factory()->create();
@@ -67,7 +67,7 @@ class WalletServiceTest extends TestCase
      /**
      * estorno de deposito
      */
-    public function test_reverse_deposit(){
+    public function test_estorno_deposito(){
 
       //cria um usuario com carteira 
       $user = User::factory()->create();
@@ -93,7 +93,7 @@ class WalletServiceTest extends TestCase
     /**
      * Teste de saque 
      */
-    public function test_withdraw()
+    public function test_saque()
     {
         //cria um usuario com carteira 
         $user = User::factory()->create();
@@ -111,7 +111,7 @@ class WalletServiceTest extends TestCase
     /**
      * estorno de saque
      */
-    public function test_reverse_withdraw(){
+    public function test_estorno_saque(){
 
       //cria um usuario com carteira 
       $user = User::factory()->create();
@@ -137,7 +137,7 @@ class WalletServiceTest extends TestCase
      * teste de saque quando o saldo é insuficiente 
      *
      */
-    public function test_withdraw_throws_exception_when_balance_is_insufficient()
+    public function test_saque_com_saldo_insuficiente()
     {
         //cria um usuario com carteira 
         $user = User::factory()->create();
@@ -153,9 +153,9 @@ class WalletServiceTest extends TestCase
     }
 
     /**
-     * Teste de tranferencia para a mesma carteira
+     * Teste de tranferencia 
      */
-    public function test_transfer_moves_funds_between_wallets()
+    public function test_tranferencia()
     {
         //cria um usuario com carteira 
         $payer = User::factory()->create();
@@ -178,7 +178,7 @@ class WalletServiceTest extends TestCase
      * Teste para verifica o erro caso o a transferencia seja feita para a 
      * mesma carteira q esta enviando o valor
      */
-    public function test_transfer_throws_exception_when_sending_to_same_wallet()
+    public function test_tranferindo_valores_para_a_mesma_carteira_emissora()
     {
         //cria um usuario com carteira 
         $user = User::factory()->create();
@@ -195,7 +195,7 @@ class WalletServiceTest extends TestCase
     /**
      * Teste de estorno deixando a cateira negativa 
      */
-    public function test_reverse_restores_balances_and_allows_negative_payee_balance()
+    public function test_estorno_de_valores_deixando_a_carteira_negativa ()
     {
         //cria um usuario pagador com carteira 
         $payer = User::factory()->create();
@@ -226,7 +226,7 @@ class WalletServiceTest extends TestCase
     /**
      * Teste um operacao de estorno caso o estorno já tenhas sido realizado
      */
-     public function test_reverse_throws_exception_if_already_reversed()
+    public function test_estorno_de_valores_estornados()
     {
         //cria um usuario pagador com carteira 
         $payer = User::factory()->create();
