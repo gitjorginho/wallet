@@ -6,6 +6,7 @@ use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use App\Exceptions\BusinessException;
 
 class TransferService{
   /**
@@ -19,12 +20,12 @@ class TransferService{
   {
     //Não permite transferencia com valor 0 ou menor
     if($amount <= 0){
-      throw new Exception("O valor da tranferência deve ser maior que zero.");
+      throw new BusinessException("O valor da tranferência deve ser maior que zero.");
     }
 
     //Não permite realizar tranferencia para a mesma carteira
     if($payerWalletId == $payeeWalletId){
-      throw new Exception("Não é possível fazer traferência para a mesma carteira");
+      throw new BusinessException("Não é possível fazer traferência para a mesma carteira");
     }
 
     return DB::transaction(function () use ($payerWalletId,$payeeWalletId,$amount){
@@ -36,7 +37,7 @@ class TransferService{
 
     // verifica se o saldo do pagador é suficiente 
     if ($payerWallet->balance < $amount) {
-        throw new Exception("Saldo insuficiente para realizar a transferência.");
+        throw new BusinessException("Saldo insuficiente para realizar a transferência.");
     }    
 
      //deduz o valor da carteira pagadora
@@ -75,14 +76,14 @@ class TransferService{
    * Methodo responsável por fazer o estono da trasação finaceira
    * @param Transaction
    * @return void
-   * @throws Exception caso o estorno já tenha sido realizado
+   * @throws BusinessException caso o estorno já tenha sido realizado
    */
   public function reverse(Transaction $transaction){
     
 
       // Verifica se a transação já foi estornada
       if ($transaction->status === 'reversed') {
-        throw new Exception("Esta transação já foi estornada.");
+        throw new BusinessException("Esta transação já foi estornada.");
       }
     DB::transaction(function () use ($transaction) {
      

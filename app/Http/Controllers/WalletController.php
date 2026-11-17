@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\BusinessException;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,7 @@ use App\Services\WithdrawService;
 use App\Http\Requests\Wallet\TransferRequest;
 use App\Http\Requests\Wallet\DepositRequest;
 use App\Http\Requests\Wallet\WithdrawRequest;
-
+use Illuminate\Support\Facades\Log;
 
 class WalletController extends Controller
 {
@@ -79,9 +80,19 @@ class WalletController extends Controller
           $transferRequest['amount']);
         
         return redirect()->route('dashboard')->with('success', 'Transferência realizada com sucesso!');
-     }catch(\Exception $e){
+     }catch(BusinessException $e){
         return redirect()->route('transfer.form')->with('error', 'Erro ao realizar a transferência: ' . $e->getMessage());
-     }
+     } catch (\Throwable $e) {
+        // Erros inesperados
+        Log::error('Falha crítica na transferência', [
+            'payer_wallet_id' => $payerWallet->id ?? null,
+            'exception' => $e->getMessage(),
+        ]);
+
+        return redirect()
+            ->route('transfer.form')
+            ->with('error', 'Ocorreu um erro interno ao processar a transferência. Tente novamente.');
+    }
 
   }
 
@@ -98,7 +109,7 @@ class WalletController extends Controller
    * Realiza o depósito em uma carteira.
    * @param  DepositRequest $depositRequest A instância da requisição HTTP contendo os dados do depósito.
    * @return \Illuminate\Http\RedirectResponse Redireciona de volta para o formulário
-   * @throws \Exception Se ocorrer algum erro durante o depósito.
+   * @throws \BusinessException Se ocorrer algum erro durante o depósito.
    */
 
   public function deposit(DepositRequest $depositRequest){
@@ -113,8 +124,18 @@ class WalletController extends Controller
       );
 
       return redirect()->route('dashboard')->with('success', 'Depósito realizado com sucesso!');
-    }catch(\Exception $e){
+    }catch(BusinessException $e){
       return redirect()->route('deposit.form')->with('error', 'Erro ao realizar o depósito: ' . $e->getMessage());
+    } catch (\Throwable $e) {
+        // Erros inesperados de sistema ou banco de dados
+        Log::error('Falha crítica no depósito', [
+            'wallet_id' => $wallet->id ?? null,
+            'exception' => $e->getMessage(),
+        ]);
+
+        return redirect()
+            ->route('deposit.form')
+            ->with('error', 'Ocorreu um erro interno ao processar o depósito. Tente novamente.');
     }
 
   }
@@ -132,7 +153,7 @@ class WalletController extends Controller
    * Realiza o saque de uma carteira.
    * @param  WithdrawRequest $withdrawRequest A instância da requisição HTTP contendo os dados do saque.
    * @return \Illuminate\Http\RedirectResponse Redireciona de volta para o formulário
-   * @throws \Exception Se ocorrer algum erro durante o saque.
+   * @throws BusinessException Se ocorrer algum erro durante o saque.
    */
   public function withdraw(WithdrawRequest $withdrawRequest)
   {
@@ -145,9 +166,19 @@ class WalletController extends Controller
           );
 
           return redirect()->route('dashboard')->with('success', 'Saque realizado com sucesso!');
-      }catch(\Exception $e){
+      }catch(BusinessException $e){
           return redirect()->route('withdraw.form')->with('error', 'Erro ao realizar o saque: ' . $e->getMessage());
-      }
+      } catch (\Throwable $e) {
+        // Erros inesperados de sistema ou banco de dados
+        Log::error('Falha crítica no saque', [
+            'wallet_id' => $wallet->id ?? null,
+            'exception' => $e->getMessage(),
+        ]);
+
+        return redirect()
+            ->route('withdraw.form')
+            ->with('error', 'Ocorreu um erro interno ao processar o saque. Tente novamente.');
+    }
   }
 
   public function reverseTransaction(Transaction $transaction)

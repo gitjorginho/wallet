@@ -6,7 +6,7 @@ use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
-
+use App\Exceptions\BusinessException;
 
 class WithdrawService {
   /**
@@ -15,13 +15,13 @@ class WithdrawService {
    * @param  int $payerWalletId O ID da carteira que realizará o saque.
    * @param  float $amount O valor a ser sacado.
    * @return Transaction A transação de saque criada.
-   * @throws Exception Se o valor do saque for inválido ou se o saldo for insuficiente.
+   * @throws BusinessException Se o valor do saque for inválido ou se o saldo for insuficiente.
    */
   public function execute(int $walletId, float $amount): Transaction
   {
     //Não permite saque com valor 0 ou menor
     if($amount <= 0){
-      throw new Exception("O valor do saque deve ser maior que zero."); 
+      throw new BusinessException("O valor do saque deve ser maior que zero."); 
     }
 
     return DB::transaction(function () use ($walletId, $amount) {
@@ -32,7 +32,7 @@ class WithdrawService {
 
         // verifica se o saldo da carteira é suficiente 
         if ($wallet->balance < $amount) {
-            throw new Exception("Saldo insuficiente para realizar o saque.");
+            throw new BusinessException("Saldo insuficiente para realizar o saque.");
         }    
 
         //deduz o valor da carteira
@@ -64,13 +64,13 @@ class WithdrawService {
    * Methodo responsável por fazer o estono da trasação finaceira
    * @param Transaction
    * @return void
-   * @throws Exception caso o estorno já tenha sido realizado
+   * @throws BusinessException caso o estorno já tenha sido realizado
    */
 
   public function reverse(Transaction $transaction){
         
     if ($transaction->status === 'reversed') {
-        throw new Exception("Esta transação já foi estornada.");
+        throw new BusinessException("Esta transação já foi estornada.");
     }
     DB::transaction(function () use ($transaction) {
        $wallet = Wallet::where('id', $transaction->payer_wallet_id)->lockForUpdate()->firstOrFail();

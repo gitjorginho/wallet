@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Exceptions\BusinessException;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
@@ -15,13 +16,13 @@ class DepositService{
    * @param  int $payeeWalletId O ID da carteira que receberá o depósito.
    * @param  float $amount O valor a ser depositado.
    * @return Transaction A transação de depósito criada.
-   * @throws Exception Se o valor do depósito for inválido.
+   * @throws BusinessException Se o valor do depósito for inválido.
    */
   public function execute(int $walletId, float $amount): Transaction
   {
     //Não permite deposito com valor 0 ou menor
     if($amount <= 0){
-      throw new Exception("O valor do depósito deve ser maior que zero.");
+      throw new BusinessException("O valor do depósito deve ser maior que zero.");
     }
 
     return DB::transaction(function () use ($walletId, $amount) {
@@ -59,14 +60,14 @@ class DepositService{
    * Methodo responsável por fazer o estono da trasação finaceira
    * @param Transaction
    * @return void
-   * @throws Exception caso o estorno já tenha sido realizado
+   * @throws BusinessException caso o estorno já tenha sido realizado
    */
   public function reverse(Transaction  $transaction){
     
 
     // Verifica se a transação já foi estornada
     if ($transaction->status === 'reversed') {
-      throw new Exception("Esta transação já foi estornada.");
+      throw new BusinessException("Esta transação já foi estornada.");
     }
 
     DB::transaction(function () use ($transaction) {
