@@ -183,6 +183,14 @@ class WalletController extends Controller
 
   public function reverseTransaction(Transaction $transaction)
   {
+    //somente a carteira pagadora/recebedora pode fazer o estorno
+    $userWalletId = Auth::user()->wallet->id;
+
+    if ($transaction->payer_wallet_id !== $userWalletId && $transaction->payee_wallet_id !== $userWalletId) {
+      abort(403, 'Você não tem permissão para estornar esta transação.');
+    }
+
+
     try {
           // Reverte a transação dependendo do tipo
           switch ($transaction->type) {
@@ -201,12 +209,24 @@ class WalletController extends Controller
                   $withdrawService->reverse($transaction);
                   break;
               default:
-                  throw new \Exception("Tipo de transação desconhecido.");
+                  throw new BusinessException("Tipo de transação desconhecido.");
           }
           return redirect()->route('dashboard')->with('success', 'Transação estornada com sucesso!');
-      } catch (\Exception $e) {
+      } catch (BusinessException $e) {
           return redirect()->route('dashboard')->with('error', 'Erro ao estornar a transação: ' . $e->getMessage());
-      }
+      } catch (\Throwable $e) {
+        // Erros inesperados de banco ou código
+        
+        Log::error('Falha crítica ao estornar transação', [
+            'transaction_id' => $transaction->id,
+            'user_wallet_id' => $userWalletId,
+            'exception' => $e->getMessage(),
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Ocorreu um erro interno ao estornar a transação. Tente novamente.');
+    }
   }
 
 }
