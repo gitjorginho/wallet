@@ -21,7 +21,7 @@ class WithdrawService implements ReversibleTransactionInterface {
   public function execute(int $walletId, float $amount): Transaction
   {
     //Não permite saque com valor 0 ou menor
-    if($amount <= 0){
+    if(bccomp((string)$amount,'0',2) <= 0){
       throw new BusinessException("O valor do saque deve ser maior que zero."); 
     }
 

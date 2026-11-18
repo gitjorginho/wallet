@@ -37,7 +37,7 @@ class TransferService implements ReversibleTransactionInterface{
     $payeeWallet = Wallet::where('id', $payeeWalletId)->lockForUpdate()->firstOrFail();
 
     // verifica se o saldo do pagador é suficiente 
-    if ($payerWallet->balance < $amount) {
+    if (bccomp((string) $payerWallet->balance, (string) $amount, 2) < 0) {
         throw new BusinessException("Saldo insuficiente para realizar a transferência.");
     }    
 

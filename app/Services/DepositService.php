@@ -22,7 +22,7 @@ class DepositService implements ReversibleTransactionInterface{
   public function execute(int $walletId, float $amount): Transaction
   {
     //Não permite deposito com valor 0 ou menor
-    if($amount <= 0){
+    if(bccomp((string) $amount, '0', 2) <= 0){
       throw new BusinessException("O valor do depósito deve ser maior que zero.");
     }
 
