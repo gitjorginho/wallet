@@ -97,15 +97,37 @@ class TransferService implements ReversibleTransactionInterface{
    */
   public function reverse(Transaction $transaction):void{
     
-
-      // Verifica se a transação já foi estornada
-      if ($transaction->status === 'reversed') {
-        throw new BusinessException("Esta transação já foi estornada.");
-      }
+      
     DB::transaction(function () use ($transaction) {
      
-      $payerWallet = Wallet::where('id', $transaction->payer_wallet_id)->lockForUpdate()->firstOrFail();
-      $payeeWallet = Wallet::where('id', $transaction->payee_wallet_id)->lockForUpdate()->firstOrFail();
+        //trava a própria transação primeiro para impedir estorno duplicado em clique duplo
+        $lockedTransaction = Transaction::where('id', $transaction->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+        
+        if ($lockedTransaction->status === 'reversed') {
+          throw new BusinessException("Esta transação já foi estornada.");
+        }
+        
+        //ordena os IDs das carteiras para evitar Deadlock no banco
+        $walletIds = [
+            $lockedTransaction->payer_wallet_id,
+            $lockedTransaction->payee_wallet_id,
+        ];
+        sort($walletIds);
+
+        $wallets = Wallet::whereIn('id', $walletIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+
+        $payerWallet = $wallets->get($lockedTransaction->payer_wallet_id);
+        $payeeWallet = $wallets->get($lockedTransaction->payee_wallet_id);
+
+        if (!$payerWallet || !$payeeWallet) {
+            throw new BusinessException("Carteira não encontrada para estorno.");
+        }
 
       // Reverte a transferência
       $payeeWallet->balance = bcsub($payeeWallet->balance, $transaction->amount, 2);
