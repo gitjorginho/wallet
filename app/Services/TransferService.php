@@ -33,9 +33,25 @@ class TransferService implements ReversibleTransactionInterface{
 
     //garante que nenhuma atualizacao seja feita na carteira durante a transacao evitatando 
     //problemas de concorrencias e inconsistencia do saldo
-    $payerWallet = Wallet::where('id', $payerWalletId)->lockForUpdate()->firstOrFail();
-    $payeeWallet = Wallet::where('id', $payeeWalletId)->lockForUpdate()->firstOrFail();
+    //ordena os IDs do menor para o maior antes de travar no banco
+    $walletIds = [$payerWalletId, $payeeWalletId];
+    sort($walletIds);
 
+    //trava as duas carteiras na ordem crescente garantida pelo ORDER BY
+    $wallets = Wallet::whereIn('id', $walletIds)
+        ->orderBy('id')
+        ->lockForUpdate()
+        ->get()
+        ->keyBy('id');
+    
+    //recupera cada carteira pela chave do seu ID
+    $payerWallet = $wallets->get($payerWalletId);
+    $payeeWallet = $wallets->get($payeeWalletId);
+
+    if (!$payerWallet || !$payeeWallet) {
+        throw new BusinessException("Carteira não encontrada.");
+    }
+       
     // verifica se o saldo do pagador é suficiente 
     if (bccomp((string) $payerWallet->balance, (string) $amount, 2) < 0) {
         throw new BusinessException("Saldo insuficiente para realizar a transferência.");
