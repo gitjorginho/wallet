@@ -13,11 +13,11 @@ use App\Services\WithdrawService;
 use App\Http\Requests\Wallet\TransferRequest;
 use App\Http\Requests\Wallet\DepositRequest;
 use App\Http\Requests\Wallet\WithdrawRequest;
+use App\Services\ReversalResolver;
 use Illuminate\Support\Facades\Log;
 
 class WalletController extends Controller
-{
-  
+{  
   /**
    * Exibe o dashboard do usuário com informações da carteira e transações.
    */
@@ -190,28 +190,19 @@ class WalletController extends Controller
       abort(403, 'Você não tem permissão para estornar esta transação.');
     }
 
-
     try {
-          // Reverte a transação dependendo do tipo
-          switch ($transaction->type) {
-              case 'transfer':
-                  $transferService = new TransferService (); 
-                  $transferService->reverse($transaction);
-                  break;
 
-              case 'deposit':
-                  $depositService = new DepositService (); 
-                  $depositService->reverse($transaction);
-                  break;
+        // com padrao de projeto strategy deixa o estorno mais escalável
+        // possibilitando futuramente aplicar outros formatos de movementaçao 
+        // sem modificar o controller.   
 
-              case 'withdraw':
-                  $withdrawService = new WithdrawService (); 
-                  $withdrawService->reverse($transaction);
-                  break;
-              default:
-                  throw new BusinessException("Tipo de transação desconhecido.");
-          }
-          return redirect()->route('dashboard')->with('success', 'Transação estornada com sucesso!');
+        $reversalResolver = ReversalResolver::resolve($transaction->type);
+        $reversalResolver->reverse($transaction);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Transação estornada com sucesso!');
+         
       } catch (BusinessException $e) {
           return redirect()->route('dashboard')->with('error', 'Erro ao estornar a transação: ' . $e->getMessage());
       } catch (\Throwable $e) {

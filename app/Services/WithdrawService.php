@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\BusinessException;
+use App\Contracts\ReversibleTransactionInterface;
 
-class WithdrawService {
+class WithdrawService implements ReversibleTransactionInterface {
   /**
    * Realiza o Saque de uma carteira específica.
    * 
@@ -67,7 +68,7 @@ class WithdrawService {
    * @throws BusinessException caso o estorno já tenha sido realizado
    */
 
-  public function reverse(Transaction $transaction){
+  public function reverse(Transaction $transaction):void{
         
     if ($transaction->status === 'reversed') {
         throw new BusinessException("Esta transação já foi estornada.");

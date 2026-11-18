@@ -7,8 +7,9 @@ use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use App\Contracts\ReversibleTransactionInterface;
 
-class DepositService{
+class DepositService implements ReversibleTransactionInterface{
   
 /**
    * Realiza o Deposito em uma carteira específica.
@@ -62,7 +63,7 @@ class DepositService{
    * @return void
    * @throws BusinessException caso o estorno já tenha sido realizado
    */
-  public function reverse(Transaction  $transaction){
+  public function reverse(Transaction  $transaction):void {
     
 
     // Verifica se a transação já foi estornada

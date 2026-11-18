@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\BusinessException;
+use App\Contracts\ReversibleTransactionInterface;
 
-class TransferService{
+class TransferService implements ReversibleTransactionInterface{
   /**
    * Realiza operação de tranferência  
    * @param int $payerWalletId id da carteira pagadora
@@ -78,7 +79,7 @@ class TransferService{
    * @return void
    * @throws BusinessException caso o estorno já tenha sido realizado
    */
-  public function reverse(Transaction $transaction){
+  public function reverse(Transaction $transaction):void{
     
 
       // Verifica se a transação já foi estornada
