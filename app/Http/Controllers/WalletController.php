@@ -186,7 +186,7 @@ class WalletController extends Controller
     //somente a carteira pagadora/recebedora pode fazer o estorno
     $userWalletId = Auth::user()->wallet->id;
 
-    if ($transaction->payer_wallet_id !== $userWalletId && $transaction->payee_wallet_id !== $userWalletId) {
+    if ($transaction->payer_wallet_id != $userWalletId && $transaction->payee_wallet_id != $userWalletId) {
       abort(403, 'Você não tem permissão para estornar esta transação.');
     }
 
